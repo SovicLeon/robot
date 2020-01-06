@@ -13,6 +13,7 @@
 /////////////////////////////////////
 
 #define CsBot_AI_H//DO NOT delete this line
+#define BETWEEN(value, min, max) (value>min&&value<max)
 #ifndef CSBOT_REAL
 #include <windows.h>
 #include <stdio.h>
@@ -52,6 +53,7 @@ int WheelRight = 3;
 int LED_1 = 0;
 int MyState = 0;
 int AI_SensorNum = 13;
+
 
 
 
@@ -148,12 +150,143 @@ DLL_EXPORT void GetCommand(int *AI_OUT)
 }
 
 
-void Game0(){
-    /*1 duration je 60ms, duration gre dol po vsakem loopu v spodnji fukciji*/
-   if(Duration>0)
-        Duration--;
+
+void drive(){
+    LED_1 = 0;
+    WheelLeft = 4;
+    WheelRight = 4;
+}
+
+void pickup(){
+    WheelLeft = 0;
+    WheelRight = 0;
+    LED_1 = 1;
+    Duration = 60;
+    LoadedObjects++;
     
 }
+
+void dropoff(){
+    WheelLeft = 0;
+    WheelRight = 0;
+    LED_1 = 2;
+    Duration = 50;
+    LoadedObjects = 0; 
+}
+/*
+int degree(int comp){
+    int a, deg;
+    if(comp<180){
+        a=180-comp;
+        deg=360-a;
+    }
+    else{
+        deg=360-comp;
+    }
+    return deg;
+}*/
+void stoosemdeset(){
+    if((BETWEEN(Compass, 170, 190))){
+            WheelLeft = 2;
+            WheelRight = 2;
+        }
+
+}
+
+void tristosestdeset(){
+    if((BETWEEN(Compass, 350, 361))||(BETWEEN(Compass, 0, 10))){
+            WheelLeft = 2;
+            WheelRight = 2;
+        }
+
+}
+
+void devetdeset(){
+    if((BETWEEN(Compass, 80, 100))){
+            WheelLeft = 2;
+            WheelRight = 2;
+        }
+
+}
+
+void dvestosedemdeset(){
+    if((BETWEEN(Compass, 260, 280))){
+            WheelLeft = 2;
+            WheelRight = 2;
+        }
+
+}
+
+void Game0(){
+    /*1 duration je 60ms, duration gre dol po vsakem loopu v spodnji fukciji*/
+    if(Duration>0)
+        Duration--;
+    //orange/dropoff
+    else if(((CSLeft_R>150)&&(CSLeft_G>150)&&(CSLeft_G<200)&&(CSLeft_B<10))&&((CSRight_R>150)&&(CSRight_G>150)&&(CSRight_G<200)&&(CSRight_B<10))&&(LoadedObjects>0)){
+        dropoff();
+    }
+    //red
+    else if((((CSLeft_R>150)&&(CSLeft_G<50)&&(CSLeft_B<50))||((CSRight_R>150)&&(CSRight_G<50)&&(CSRight_B<50)))&&(LoadedObjects<6)){
+        pickup();
+    }
+    //crna
+    else if((((CSLeft_R<50)&&(CSLeft_G<50)&&(CSLeft_B<50))||((CSRight_R<50)&&(CSRight_G<50)&&(CSRight_B<50)))&&(LoadedObjects<6)){
+        pickup();
+    }
+    //cyan
+    else if((((CSLeft_R<50)&&(CSLeft_G>200)&&(CSLeft_B>200))||((CSRight_R<50)&&(CSRight_G>200)&&(CSRight_B>200)))&&(LoadedObjects<6)){
+        pickup();
+    }
+    //rumeno
+    else if(((CSLeft_R>200)&&(CSLeft_G>200)&&(CSLeft_B<10))&&((CSRight_R>200)&&(CSRight_G>200)&&(CSRight_B<10))){
+            WheelLeft = -2;
+            WheelRight = -4;
+            LED_1 = 0;
+            //Duration = 15;
+    }
+    else if((CSLeft_R>200)&&(CSLeft_G>200)&&(CSLeft_B<10)){
+            WheelLeft = 2;
+            WheelRight = -3;
+            LED_1 = 0;
+    }
+    else if((CSRight_R>200)&&(CSRight_G>200)&&(CSRight_B<10)){
+            WheelLeft = -3;
+            WheelRight = 2;
+            LED_1 = 0;
+    }
+    //spin
+    else if(US_Front <= 12){
+        LED_1 = 0;
+        if(US_Left < US_Right){
+            WheelLeft = 3;
+            WheelRight = -3;
+        }
+        else{
+            WheelLeft = -3;
+            WheelRight = 3;
+
+        }
+    }
+    //slight dodge
+    else if((US_Front>12)&&((US_Left<=12)||(US_Right<=12))){
+        LED_1 = 0;
+        if(US_Left < US_Right){
+            WheelLeft = 4;
+            WheelRight = 1;
+        }
+        else{
+            WheelLeft = 1;
+            WheelRight = 4;
+
+        }
+    }
+    //ravno
+    else{
+        drive();
+    }
+}
+
+
 
 void Game1() {
     //x in y invisible border pre setana
@@ -162,8 +295,152 @@ void Game1() {
     //obracane po kompasu - pravokotno, probaj s BREAK statmentom kadar zadane pravo stopinjo itd.
     //zapis pozicije(oložišča) x in y in najti pot do nje
     /*1 duration je 60ms, duration gre dol po vsakem loopu v spodnji fukciji*/
+
+    if(Duration>0)
+        Duration--;
+
+    else if(((BETWEEN(PositionX, 10, 350))&&(BETWEEN(PositionY, 8, 260)))||((PositionY==0)&&(PositionX==0))){
+        if(((CSLeft_R>150)&&(CSLeft_G>150)&&(CSLeft_G<200)&&(CSLeft_B<10))&&((CSRight_R>150)&&(CSRight_G>150)&&(CSRight_G<200)&&(CSRight_B<10))&&(LoadedObjects>0)){
+            dropoff();
+        }
+        //red
+        else if((((CSLeft_R>150)&&(CSLeft_G<50)&&(CSLeft_B<50))||((CSRight_R>150)&&(CSRight_G<50)&&(CSRight_B<50)))&&(LoadedObjects<6)){
+            pickup();
+        }
+        //crna
+        else if((((CSLeft_R<50)&&(CSLeft_G<50)&&(CSLeft_B<50))||((CSRight_R<50)&&(CSRight_G<50)&&(CSRight_B<50)))&&(LoadedObjects<6)){
+            pickup();
+        }
+        //cyan
+        else if((((CSLeft_R<50)&&(CSLeft_G>200)&&(CSLeft_B>200))||((CSRight_R<50)&&(CSRight_G>200)&&(CSRight_B>200)))&&(LoadedObjects<6)){
+            pickup();
+        }
+        //rumeno
+        else if(((CSLeft_R>200)&&(CSLeft_G>200)&&(CSLeft_B<10))&&((CSRight_R>200)&&(CSRight_G>200)&&(CSRight_B<10))){
+            WheelLeft = -2;
+            WheelRight = -4;
+            LED_1 = 0;
+            //Duration = 15;
+        }
+        else if((CSLeft_R>200)&&(CSLeft_G>200)&&(CSLeft_B<10)){
+            WheelLeft = 2;
+            WheelRight = -3;
+            LED_1 = 0;
+        }
+        else if((CSRight_R>200)&&(CSRight_G>200)&&(CSRight_B<10)){
+            WheelLeft = -3;
+            WheelRight = 2;
+            LED_1 = 0;
+        }
+        //swamp
+        else if(((BETWEEN(CSLeft_R, 125, 160))&&(BETWEEN(CSLeft_G, 135, 170))&&(BETWEEN(CSLeft_B, 180, 215)))&&((BETWEEN(CSRight_R, 125, 160))&&(BETWEEN(CSRight_G, 135, 170))&&(BETWEEN(CSRight_B, 180, 215)))){
+            WheelLeft = -2;
+            WheelRight = -4;
+            LED_1 = 0;
+            Duration = 15;
+        }
+        else if((BETWEEN(CSLeft_R, 125, 160))&&(BETWEEN(CSLeft_G, 135, 170))&&(BETWEEN(CSLeft_B, 180, 215))){
+            WheelLeft = 4;
+            WheelRight = -3;
+            LED_1 = 0;
+            Duration = 15;
+        }
+        else if((BETWEEN(CSRight_R, 125, 160))&&(BETWEEN(CSRight_G, 135, 170))&&(BETWEEN(CSRight_B, 180, 215))){
+            WheelLeft = -3;
+            WheelRight = 4;
+            LED_1 = 0;
+            Duration = 15;
+        }
+        //spin
+        else if(US_Front <= 12){
+            LED_1 = 0;
+            if(US_Left < US_Right){
+            WheelLeft = 3;
+            WheelRight = -3;
+        }
+        else{
+            WheelLeft = -3;
+            WheelRight = 3;
+
+        }
+        }
+        //slight dodge
+        else if((US_Front>12)&&((US_Left<=12)||(US_Right<=12))){
+            LED_1 = 0;
+            if(US_Left < US_Right){
+            WheelLeft = 4;
+            WheelRight = 1;
+        }
+        else{
+            WheelLeft = 1;
+            WheelRight = 4;
+
+        }
+        }
+        //ravno
+        else{
+            drive();
+        }
+
+
+    }
+
+    else{
+
+        if(PositionX<=10){  
+            if((BETWEEN(Compass, 250, 290))){
+                WheelLeft = 2;
+                WheelRight = 2;
+            }
+            else{
+                WheelRight = 2;
+                WheelLeft = -2;
+            }
+        }
+
+        else if(PositionX>=350){
+            if((BETWEEN(Compass, 90, 110))){
+                WheelLeft = 2;
+                WheelRight = 2;
+            }
+            else{
+                WheelRight = 2;
+                WheelLeft = -2;
+            }
+        }
+        else if(PositionY<=8){
+            if((BETWEEN(Compass, 340, 361))||(BETWEEN(Compass, 0, 20))){
+                WheelLeft = 2;
+                WheelRight = 2;
+            }
+            else{
+                WheelRight = 2;
+                WheelLeft = -2;
+            }
+        }
+        else if(PositionY>=260){
+            if((BETWEEN(Compass, 160, 200))){
+                WheelLeft = 2;
+                WheelRight = 2;
+            }
+            else{
+                WheelRight = 2;
+                WheelLeft = -2;
+            }
+        }
+    }
+
+   
     
+
+
+
+
 }
+
+
+    
+
 
 DLL_EXPORT void OnTimer()
 {
